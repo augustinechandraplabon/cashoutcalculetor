@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashOut Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans Bengali', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        label {
+            font-size: 16px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .popup-content {
+            background-color: #000;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .popup-content h3 {
+            margin-top: 0;
+            color: red;
+        }
+
+        .popup-content p {
+            color: white;
+        }
+
+        .popup button {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>CashOut Calculator</h1>
+        <p>নগদ এবং বিকাশ অ্যাপ বা USSD দিয়ে ক্যাশআউট চার্জ জানুন।</p>
+    </header>
+
+    <div class="container">
+        <label for="amount">আপনার টাকার পরিমাণ লিখুন (বাংলা বা ইংরেজি)</label>
+        <input type="text" id="amount" placeholder="উদাহরণ: ১০০০ বা 1000" oninput="filterInput(this)">
+
+        <label for="service">সার্ভিস নির্বাচন করুন</label>
+        <select id="service">
+            <option value="">সার্ভিস নির্বাচন করুন</option>
+            <option value="bKashApp">বিকাশ অ্যাপ</option>
+            <option value="bKashUSSD">বিকাশ USSD (*২৪৭#)</option>
+            <option value="NagadApp">নগদ অ্যাপ</option>
+            <option value="NagadUSSD">নগদ USSD (*১৬৭#)</option>
+        </select>
+
+        <label for="paymentOption">আপনি কি খরচ দিবেন?</label>
+        <select id="paymentOption">
+            <option value="">একটি অপশন নির্বাচন করুন</option>
+            <option value="yes">হ্যাঁ, আমি প্রদান করব</option>
+            <option value="no">না, আমি প্রদান করব না</option>
+        </select>
+
+        <button onclick="calculate()">ক্যালকুলেট করুন</button>
+    </div>
+
+    <!-- Popup Box -->
+    <div class="popup" id="popup">
+        <div class="popup-content">
+            <h3>ফলাফল</h3>
+            <p id="resultAmount"></p>
+            <p id="resultCharge"></p>
+            <p id="resultTotal"></p>
+            <button onclick="closePopup()">বন্ধ করুন</button>
+        </div>
+    </div>
+
+    <script>
+        const charges = {
+            bKashApp: 0.0185,
+            bKashUSSD: 0.0185,
+            NagadApp: 0.0125,
+            NagadUSSD: 0.015
+        };
+
+        function filterInput(input) {
+            input.value = input.value.replace(/[^\d০-৯]/g, '');
+        }
+
+        function convertToEnglishNumber(value) {
+            const bengaliToEnglish = {
+                '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4',
+                '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9'
+            };
+            return value.replace(/[০-৯]/g, match => bengaliToEnglish[match]);
+        }
+
+        function calculate() {
+            const amountInput = document.getElementById("amount").value;
+            const amount = parseFloat(convertToEnglishNumber(amountInput));
+            const service = document.getElementById("service").value;
+            const paymentOption = document.getElementById("paymentOption").value;
+
+            if (!amount || amount <= 0) {
+                alert("সঠিক টাকার পরিমাণ লিখুন (১ বা তার বেশি)।");
+                return;
+            }
+
+            if (!service) {
+                alert("দয়া করে একটি সার্ভিস নির্বাচন করুন।");
+                return;
+            }
+
+            if (!paymentOption) {
+                alert("আপনার পেমেন্ট অপশন নির্বাচন করুন।");
+                return;
+            }
+
+            const charge = amount * charges[service];
+            const totalAmount = paymentOption === "yes" ? amount + charge : amount - charge;
+
+            document.getElementById("resultAmount").innerText = `মূল টাকার পরিমাণ: ${amount.toFixed(2)} টাকা`;
+            document.getElementById("resultCharge").innerText = `চার্জের পরিমাণ: ${charge.toFixed(2)} টাকা`;
+            document.getElementById("resultTotal").innerText = paymentOption === "yes" 
+                ? `মোট পরিমাণ (চার্জ সহ): ${totalAmount.toFixed(2)} টাকা`
+                : `মোট পরিমাণ (চার্জ ছাড়া): ${totalAmount.toFixed(2)} টাকা`;
+
+            document.getElementById("popup").style.display = "flex";
+        }
+
+        function closePopup() {
+            document.getElementById("popup").style.display = "none";
+        }
+    </script>
+
+</body>
+</html>
